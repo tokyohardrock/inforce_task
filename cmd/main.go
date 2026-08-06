@@ -9,11 +9,18 @@ import (
 	"inforce_task/internal/server"
 	"log/slog"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 )
 
 func main() {
 	log := logger.InitLogger()
 	slog.SetDefault(log)
+
+	mainCtx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
 
 	cfg, err := config.MustLoad()
 	if err != nil {
@@ -32,8 +39,15 @@ func main() {
 
 	fmt.Println("Server runs on ", server.Addr)
 
-	if err = server.ListenAndServe(); err != nil {
-		slog.Error(err.Error())
-		return
+	<-mainCtx.Done()
+	slog.Info("shutting down server gracefully...")
+
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer shutdownCancel()
+
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		slog.Error("server forced to shutdown", "error", err)
 	}
+
+	slog.Info("server stopped gracefully")
 }
