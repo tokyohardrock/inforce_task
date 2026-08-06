@@ -13,7 +13,6 @@ import (
 
 func main() {
 	log := logger.InitLogger()
-
 	slog.SetDefault(log)
 
 	cfg, err := config.MustLoad()
