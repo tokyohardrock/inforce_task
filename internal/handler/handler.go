@@ -34,7 +34,7 @@ func IsJSONContentType(contentType string) bool {
 	return mediaType == "application/json"
 }
 
-func CreateEvent(w http.ResponseWriter, r *http.Request) {
+func (h *EventHandler) CreateEvent(w http.ResponseWriter, r *http.Request) {
 	if !IsJSONContentType(r.Header.Get("Content-Type")) {
 		http.Error(w, "Content-Type must be application/json", http.StatusUnsupportedMediaType)
 		return
@@ -58,7 +58,13 @@ func CreateEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println(*event)
+	err = h.repo.Save(r.Context(), *event)
+	if err != nil {
+		slog.Error(err.Error())
+
+		http.Error(w, "Failed to save", http.StatusInternalServerError)
+		return
+	}
 
 	w.WriteHeader(http.StatusOK)
 }
