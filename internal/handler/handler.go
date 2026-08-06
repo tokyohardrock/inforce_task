@@ -11,6 +11,16 @@ import (
 	"time"
 )
 
+type EventHandler struct {
+	repo repo.Repo
+}
+
+func NewEventHandler(repo repo.Repo) *EventHandler {
+	return &EventHandler{
+		repo: repo,
+	}
+}
+
 func IsJSONContentType(contentType string) bool {
 	if contentType == "" {
 		return false
