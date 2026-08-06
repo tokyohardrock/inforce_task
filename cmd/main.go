@@ -30,14 +30,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	mux := http.NewServeMux()
-	mux.HandleFunc("POST /events", handler.CreateEvent)
-
-	server, err := server.New(&cfg.Server, mux)
+	pool, err := database.NewPostgresPool(mainCtx, cfg.DB)
 	if err != nil {
-		slog.Error(err.Error())
-		return
+		slog.Error("failed to connect to postgres", "error", err)
+		os.Exit(1)
 	}
+	defer pool.Close()
 
 	fmt.Println("Server runs on ", server.Addr)
 
