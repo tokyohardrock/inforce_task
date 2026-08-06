@@ -44,16 +44,12 @@ func (h *EventHandler) CreateEvent(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(event)
 	if err != nil {
-		slog.Error(err.Error())
-
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
 	err = event.Validate()
 	if err != nil {
-		slog.Error(err.Error())
-
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
