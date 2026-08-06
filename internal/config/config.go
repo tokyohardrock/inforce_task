@@ -16,8 +16,26 @@ type HTTPServer struct {
 	MaxHeaderBytes    int           `yaml:"max_header_bytes" env:"SERVER_MAX_HEADER_BYTES" env-default:"1048576"`
 }
 
+type DBPoolConfig struct {
+	MaxConns        int32         `yaml:"max_conns" env:"DB_MAX_CONNS" env-default:"25"`
+	MinConns        int32         `yaml:"min_conns" env:"DB_MIN_CONNS" env-default:"5"`
+	MaxConnIdleTime time.Duration `yaml:"max_conn_idle_time" env:"DB_MAX_CONN_IDLE_TIME" env-default:"15m"`
+}
+
+type Database struct {
+	Host     string `yaml:"host" env:"DB_HOST" env-default:"localhost"`
+	Port     int    `yaml:"port" env:"DB_PORT" env-default:"5432"`
+	User     string `yaml:"user" env:"DB_USER" env-default:"postgres"`
+	Password string `yaml:"password" env:"DB_PASSWORD" env-required:"true"`
+	Name     string `yaml:"name" env:"DB_NAME" env-default:"events_db"`
+	SSLMode  string `yaml:"ssl_mode" env:"DB_SSLMODE" env-default:"disable"`
+
+	PoolConf DBPoolConfig `yaml:"pool_config" env-default:"disable"`
+}
+
 type Config struct {
-	Server HTTPServer `yaml:"server" env:"server" env-required:"true"`
+	Server HTTPServer `yaml:"server" env-required:"true"`
+	DB     Database   `yaml:"db" env-required:"true"`
 }
 
 func MustLoad() (*Config, error) {
