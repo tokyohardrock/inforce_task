@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"inforce_task/internal/model"
+	"inforce_task/internal/repo"
 )
 
 func TestIsJSONContentType(t *testing.T) {
@@ -133,7 +134,9 @@ func TestCreateEvent(t *testing.T) {
 
 			rr := httptest.NewRecorder()
 
-			CreateEvent(rr, req)
+			eventHandler := NewEventHandler(repo.NewMockEventRepository())
+
+			eventHandler.CreateEvent(rr, req)
 
 			if rr.Code != tt.expectedStatus {
 				t.Errorf("CreateEvent returned wrong status code: got %v want %v",
