@@ -37,7 +37,27 @@ func main() {
 	}
 	defer pool.Close()
 
-	fmt.Println("Server runs on ", server.Addr)
+	eventRepo := repo.NewPostgresEventRepository(pool)
+
+	eventHandler := handler.NewEventHandler(eventRepo)
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("POST /events", eventHandler.CreateEvent)
+	mux.HandleFunc("GET /events", eventHandler.GetEvents)
+
+	srv, err := server.New(&cfg.Server, mux)
+	if err != nil {
+		slog.Error("failed to init server", "error", err)
+		os.Exit(1)
+	}
+
+	go func() {
+		slog.Info("server starting", "addr", srv.Addr)
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			slog.Error("server HTTP listen error", "error", err)
+			stop()
+		}
+	}()
 
 	<-mainCtx.Done()
 	slog.Info("shutting down server gracefully...")
