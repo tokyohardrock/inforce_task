@@ -24,8 +24,8 @@ func main() {
 
 	cfg, err := config.MustLoad()
 	if err != nil {
-		slog.Error(err.Error())
-		return
+		slog.Error("failed to load config", "error", err)
+		os.Exit(1)
 	}
 
 	mux := http.NewServeMux()
