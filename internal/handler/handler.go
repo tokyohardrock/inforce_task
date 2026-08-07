@@ -8,6 +8,7 @@ import (
 	"mime"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -73,9 +74,9 @@ func (h *EventHandler) CreateEvent(w http.ResponseWriter, r *http.Request) {
 func (h *EventHandler) GetEvents(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 
-	userIDStr := query.Get("user_id")
-	startTimeStr := query.Get("start_time")
-	endTimeStr := query.Get("end_time")
+	userIDStr := strings.TrimSpace(query.Get("user_id"))
+	startTimeStr := strings.TrimSpace(query.Get("start_time"))
+	endTimeStr := strings.TrimSpace(query.Get("end_time"))
 
 	if userIDStr == "" {
 		http.Error(w, "query param user_id is required", http.StatusBadRequest)
