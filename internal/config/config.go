@@ -48,12 +48,10 @@ func MustLoad() (*Config, error) {
 		return nil, fmt.Errorf("%s: during read config.yaml: %w", fn, err)
 	}
 
-	err = cleanenv.ReadConfig(".env", cfg)
-	if err != nil {
-		err = cleanenv.ReadEnv(cfg)
-		if err != nil {
-			return nil, fmt.Errorf("%s: during read .env: %w", fn, err)
-		}
+	_ = cleanenv.ReadConfig(".env", cfg)
+
+	if err := cleanenv.ReadEnv(cfg); err != nil {
+		return nil, fmt.Errorf("%s: during read env vars: %w", fn, err)
 	}
 
 	return cfg, nil
