@@ -95,6 +95,11 @@ func (h *EventHandler) GetEvents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if startTime.After(endTime) {
+		http.Error(w, "start_time must be before or equal to end_time", http.StatusBadRequest)
+		return
+	}
+
 	events, err := h.repo.GetByUserID(r.Context(), userID, startTime, endTime)
 	if err != nil {
 		slog.Error("failed to get events from db", "user_id", userID, "error", err)
