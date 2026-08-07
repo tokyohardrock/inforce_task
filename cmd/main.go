@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"inforce_task/internal/config"
+	"inforce_task/internal/cron"
 	"inforce_task/internal/database"
 	"inforce_task/internal/handler"
 	"inforce_task/internal/logger"
@@ -38,6 +39,13 @@ func main() {
 	defer pool.Close()
 
 	eventRepo := repo.NewPostgresEventRepository(pool)
+
+	statsJob := cron.NewStatsJob(eventRepo)
+	if err := statsJob.Start(); err != nil {
+		slog.Error("failed to start cron job", "error", err)
+		os.Exit(1)
+	}
+	defer statsJob.Stop()
 
 	eventHandler := handler.NewEventHandler(eventRepo)
 
