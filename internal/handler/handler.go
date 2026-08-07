@@ -1,9 +1,9 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"inforce_task/internal/model"
-	"inforce_task/internal/repo"
 	"log/slog"
 	"mime"
 	"net/http"
@@ -11,11 +11,16 @@ import (
 	"time"
 )
 
-type EventHandler struct {
-	repo repo.Repo
+type Repo interface {
+	Save(ctx context.Context, event model.ActivityEvent) error
+	GetByUserID(ctx context.Context, userID int64, from, to time.Time) ([]model.ActivityEvent, error)
 }
 
-func NewEventHandler(repo repo.Repo) *EventHandler {
+type EventHandler struct {
+	repo Repo
+}
+
+func NewEventHandler(repo Repo) *EventHandler {
 	return &EventHandler{
 		repo: repo,
 	}
