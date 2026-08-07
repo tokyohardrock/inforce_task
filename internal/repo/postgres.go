@@ -103,3 +103,30 @@ func (r *PostgresEventRepository) CalculateAndSaveUserStats(ctx context.Context,
 
 	return nil
 }
+
+func (r *PostgresEventRepository) GetUserStats(ctx context.Context, userID int64, from, to time.Time) (*model.UserStats, error) {
+	const fn = "repo.PostgresEventRepository.GetUserStats"
+
+	query := `
+		SELECT
+			COALESCE(SUM(event_count), 0)::int AS total_events
+		FROM user_activity_stats
+		WHERE user_id = $1
+		  AND time_bucket >= date_bin('1 minutes', $2::timestamptz, '2000-01-01 00:00:00Z')
+		  AND time_bucket <= $3`
+
+	stats := model.UserStats{
+		UserID:    userID,
+		StartTime: from,
+		EndTime:   to,
+	}
+
+	err := r.pool.QueryRow(ctx, query, userID, from, to).Scan(
+		&stats.TotalEvents,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("%s: exec select stats: %w", fn, err)
+	}
+
+	return &stats, nil
+}
