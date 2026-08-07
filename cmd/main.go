@@ -52,6 +52,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /events", eventHandler.CreateEvent)
 	mux.HandleFunc("GET /events", eventHandler.GetEvents)
+	mux.HandleFunc("GET /stats/{user}", eventHandler.GetUserStats)
 
 	srv, err := server.New(&cfg.Server, mux)
 	if err != nil {
