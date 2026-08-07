@@ -29,14 +29,14 @@ type ActivityEvent struct {
 }
 
 func (event *ActivityEvent) Validate() error {
-	const fn = "validator.ValidateEventStruct"
+	const fn = "model.ActivityEvent.Validate"
 
-	eventID := strings.TrimSpace(event.EventID)
-	if eventID == "" {
+	event.EventID = strings.TrimSpace(event.EventID)
+	if event.EventID == "" {
 		return fmt.Errorf("%s: %w", fn, ErrEmptyEventID)
 	}
 
-	if _, err := uuid.Parse(eventID); err != nil {
+	if _, err := uuid.Parse(event.EventID); err != nil {
 		return fmt.Errorf("%s: %w (%v)", fn, ErrInvalidUUID, err)
 	}
 
@@ -44,8 +44,8 @@ func (event *ActivityEvent) Validate() error {
 		return fmt.Errorf("%s: %w", fn, ErrInvalidUserID)
 	}
 
-	action := strings.TrimSpace(event.Action)
-	if action == "" {
+	event.Action = strings.TrimSpace(event.Action)
+	if event.Action == "" {
 		return fmt.Errorf("%s: %w", fn, ErrEmptyAction)
 	}
 
@@ -57,11 +57,13 @@ func (event *ActivityEvent) Validate() error {
 		return fmt.Errorf("%s: %w", fn, ErrFutureTimestamp)
 	}
 
+	event.ActionObjectType = strings.TrimSpace(event.ActionObjectType)
+
 	if event.ActionObjectType != "" && event.ActionObjectID <= 0 {
 		return fmt.Errorf("%s: action_object_id must be greater than zero when action_object_type is provided", fn)
 	}
 
-	if event.ActionObjectID > 0 && strings.TrimSpace(event.ActionObjectType) == "" {
+	if event.ActionObjectID > 0 && event.ActionObjectType == "" {
 		return fmt.Errorf("%s: action_object_type must be provided when action_object_id is specified", fn)
 	}
 
