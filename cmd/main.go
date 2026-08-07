@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"embed"
 	"errors"
 	"inforce_task/internal/config"
 	"inforce_task/internal/cron"
@@ -17,6 +18,9 @@ import (
 	"syscall"
 	"time"
 )
+
+//go:embed frontend/index.html
+var webFS embed.FS
 
 func main() {
 	log := logger.InitLogger()
@@ -50,6 +54,21 @@ func main() {
 	eventHandler := handler.NewEventHandler(eventRepo)
 
 	mux := http.NewServeMux()
+	mux.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/" {
+			http.NotFound(w, r)
+			return
+		}
+		data, err := webFS.ReadFile("frontend/index.html")
+		if err != nil {
+			slog.Error(err.Error())
+
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.Write(data)
+	})
 	mux.HandleFunc("POST /events", eventHandler.CreateEvent)
 	mux.HandleFunc("GET /events", eventHandler.GetEvents)
 	mux.HandleFunc("GET /stats/{user}", eventHandler.GetUserStats)
