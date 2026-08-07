@@ -18,6 +18,10 @@ WORKDIR /app
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
 
+RUN mkdir -p internal/config
+
+COPY internal/config/config.yaml ./internal/config/config.yaml
+
 COPY --from=builder /app/bin/app /app/app
 
 RUN adduser -D -g '' appuser && chown -R appuser:appuser /app
