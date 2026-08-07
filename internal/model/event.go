@@ -73,3 +73,10 @@ func (event *ActivityEvent) Validate() error {
 
 	return nil
 }
+
+type UserStats struct {
+	UserID      int64     `json:"user_id"`
+	TotalEvents int       `json:"total_events"`
+	StartTime   time.Time `json:"start_time"`
+	EndTime     time.Time `json:"end_time"`
+}
