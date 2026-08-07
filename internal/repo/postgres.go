@@ -112,7 +112,7 @@ func (r *PostgresEventRepository) GetUserStats(ctx context.Context, userID int64
 			COALESCE(SUM(event_count), 0)::int AS total_events
 		FROM user_activity_stats
 		WHERE user_id = $1
-		  AND time_bucket >= date_bin('1 minutes', $2::timestamptz, '2000-01-01 00:00:00Z')
+		  AND time_bucket >= date_bin('4 hours', $2::timestamptz, '2000-01-01 00:00:00Z')
 		  AND time_bucket <= $3`
 
 	stats := model.UserStats{
