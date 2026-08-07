@@ -21,3 +21,7 @@ func (m *MockDB) Save(ctx context.Context, event model.ActivityEvent) error {
 func (m *MockDB) GetByUserID(ctx context.Context, userID int64, from, to time.Time) ([]model.ActivityEvent, error) {
 	return nil, m.Err
 }
+
+func (m *MockDB) GetUserStats(ctx context.Context, userID int64, from, to time.Time) (*model.UserStats, error) {
+	return nil, m.Err
+}
