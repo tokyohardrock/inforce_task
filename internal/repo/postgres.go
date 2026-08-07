@@ -80,3 +80,26 @@ func (r *PostgresEventRepository) GetByUserID(ctx context.Context, userID int64,
 
 	return events, nil
 }
+
+func (r *PostgresEventRepository) CalculateAndSaveUserStats(ctx context.Context, from, to time.Time) error {
+	const fn = "repo.PostgresEventRepository.CalculateAndSaveUserStats"
+
+	query := `
+		INSERT INTO user_activity_stats (user_id, time_bucket, event_count)
+		SELECT
+			user_id,
+			$1::timestamptz AS time_bucket,
+			COUNT(*) AS event_count
+		FROM events
+		WHERE timestamp >= $1 AND timestamp < $2
+		GROUP BY user_id
+		ON CONFLICT (user_id, time_bucket)
+		DO UPDATE SET event_count = EXCLUDED.event_count`
+
+	_, err := r.pool.Exec(ctx, query, from, to)
+	if err != nil {
+		return fmt.Errorf("%s: exec insert stats: %w", fn, err)
+	}
+
+	return nil
+}
