@@ -113,7 +113,7 @@ func (r *PostgresEventRepository) GetUserStats(ctx context.Context, userID int64
 		FROM user_activity_stats
 		WHERE user_id = $1
 		  AND time_bucket >= date_bin('4 hours', $2::timestamptz, '2000-01-01 00:00:00Z')
-		  AND time_bucket <= $3`
+		  AND time_bucket < $3`
 
 	stats := model.UserStats{
 		UserID:    userID,
