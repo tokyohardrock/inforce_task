@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
       POSTGRES_DB: ${DB_NAME:-events_db}
     ports:
-      - "${DB_PORT}:5432"
+      - "${DB_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -16,6 +16,44 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+
+  migrations:
+    image: migrate/migrate
+    container_name: db_migrations
+    volumes:
+      - ./db/migrations:/migrations
+    command:
+      - -path=/migrations
+      - -database=postgres://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@db:5432/${DB_NAME:-events_db}?sslmode=${DB_SSLMODE:-disable}
+      - up
+    depends_on:
+      db:
+        condition: service_healthy
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: stat_service
+    restart: always
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./internal/config:/app/internal/config
+    environment:
+      - SERVER_ADDR=:9090
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:-secretpassword}
+      - DB_NAME=${DB_NAME:-events_db}
+      - DB_SSLMODE=${DB_SSLMODE:-disable}
+      - DB_MAX_CONNS=${DB_MAX_CONNS:-50}
+      - DB_MIN_CONNS=${DB_MIN_CONNS:-10}
+      - DB_MAX_CONN_IDLE_TIME=${DB_MAX_CONN_IDLE_TIME:-30m}
+    depends_on:
+      migrations:
+        condition: service_completed_successfully
 
 volumes:
   postgres_data:
