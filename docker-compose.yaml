@@ -38,8 +38,6 @@ services:
     restart: always
     ports:
       - "9090:9090"
-    volumes:
-      - ./internal/config:/app/internal/config
     environment:
       - SERVER_ADDR=:9090
       - DB_HOST=db
