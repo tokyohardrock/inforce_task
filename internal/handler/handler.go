@@ -15,6 +15,7 @@ import (
 type Repo interface {
 	Save(ctx context.Context, event model.ActivityEvent) error
 	GetByUserID(ctx context.Context, userID int64, from, to time.Time) ([]model.ActivityEvent, error)
+	GetUserStats(ctx context.Context, userID int64, from, to time.Time) (*model.UserStats, error)
 }
 
 type EventHandler struct {
@@ -122,5 +123,50 @@ func (h *EventHandler) GetEvents(w http.ResponseWriter, r *http.Request) {
 
 	if err := json.NewEncoder(w).Encode(events); err != nil {
 		slog.Error("failed to encode events response", "error", err)
+	}
+}
+
+func (h *EventHandler) GetUserStats(w http.ResponseWriter, r *http.Request) {
+	userIDStr := r.PathValue("user")
+
+	userID, err := strconv.ParseInt(userIDStr, 10, 64)
+	if err != nil || userID <= 0 {
+		http.Error(w, "invalid or missing user_id", http.StatusBadRequest)
+		return
+	}
+
+	query := r.URL.Query()
+	startTimeStr := strings.TrimSpace(query.Get("start_time"))
+	endTimeStr := strings.TrimSpace(query.Get("end_time"))
+
+	startTime, err := time.Parse(time.RFC3339, startTimeStr)
+	if err != nil {
+		http.Error(w, "invalid start_time format (expected RFC3339)", http.StatusBadRequest)
+		return
+	}
+
+	endTime, err := time.Parse(time.RFC3339, endTimeStr)
+	if err != nil {
+		http.Error(w, "invalid end_time format (expected RFC3339)", http.StatusBadRequest)
+		return
+	}
+
+	if startTime.After(endTime) {
+		http.Error(w, "start_time must be before or equal to end_time", http.StatusBadRequest)
+		return
+	}
+
+	stats, err := h.repo.GetUserStats(r.Context(), userID, startTime, endTime)
+	if err != nil {
+		slog.Error("failed to fetch user stats", "user_id", userID, "error", err)
+
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+
+	if err := json.NewEncoder(w).Encode(stats); err != nil {
+		slog.Error("failed to encode stats response", "error", err)
 	}
 }
