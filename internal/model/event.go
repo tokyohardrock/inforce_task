@@ -57,14 +57,18 @@ func (event *ActivityEvent) Validate() error {
 		return fmt.Errorf("%s: %w", fn, ErrFutureTimestamp)
 	}
 
+	if event.ActionObjectID < 0 {
+		return fmt.Errorf("%s: action_object_id cannot be negative", fn)
+	}
+
 	event.ActionObjectType = strings.TrimSpace(event.ActionObjectType)
 
-	if event.ActionObjectType != "" && event.ActionObjectID <= 0 {
-		return fmt.Errorf("%s: action_object_id must be greater than zero when action_object_type is provided", fn)
+	if event.ActionObjectType != "" && event.ActionObjectID == 0 {
+		return fmt.Errorf("%s: action_object_id is required when action_object_type is provided", fn)
 	}
 
 	if event.ActionObjectID > 0 && event.ActionObjectType == "" {
-		return fmt.Errorf("%s: action_object_type must be provided when action_object_id is specified", fn)
+		return fmt.Errorf("%s: action_object_type is required when action_object_id is provided", fn)
 	}
 
 	return nil
