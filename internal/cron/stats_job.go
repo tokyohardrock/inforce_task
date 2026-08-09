@@ -30,7 +30,7 @@ func NewStatsJob(repo StatsRepo) *StatsJob {
 }
 
 func (j *StatsJob) Start() error {
-	_, err := j.cron.AddFunc("* */4 * * *", func() {
+	_, err := j.cron.AddFunc("0 */4 * * *", func() {
 		j.run()
 	})
 	if err != nil {
